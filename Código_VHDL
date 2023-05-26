@@ -1,0 +1,126 @@
+LIBRARY ieee;
+USE ieee.std_logic_1164.all;
+
+ENTITY AVX_Adder_Subtractor IS
+  PORT (
+  ------------------------------------------------------------------------------
+  --Inputs:
+    A_i        : IN  std_logic_vector(31 DOWNTO 0); -- vetor A_i 
+    B_i        : IN  std_logic_vector(31 DOWNTO 0); -- vetor B_i 
+    mode_i 	: IN std_logic; -- '0' para adição e '1' para subtração
+    vecSize_i : IN  std_logic_vector(1 DOWNTO 0); -- tamanho do vetor
+
+  ------------------------------------------------------------------------------
+  --Outputs:
+    S_o        : OUT std_logic_vector(31 DOWNTO 0)  -- saída após a operação
+    );
+END AVX_Adder_Subtractor;
+
+--------------------------------------------------------------------------------
+--Complete your VHDL description below
+--------------------------------------------------------------------------------
+
+ARCHITECTURE TypeArchitecture OF AVX_Adder_Subtractor IS
+
+signal s_G : std_logic_vector(31 downto 0); --generate carry
+signal s_P : std_logic_vector(31 downto 0); --propagate carry
+signal Carry : std_logic_vector(31 downto 0); 
+
+signal s_Soma  : std_logic_vector(31 downto 0); 
+signal B_op : std_logic_vector(31 downto 0); --dependendo da operação, inverte cada bit de B
+
+BEGIN
+
+--Inverte para fazer o complemento de 2 na subtração, quando mode_i='1'
+B_op <= B_i when (mode_i = '0') else -- adição
+	 not(B_i) when (mode_i = '1'); -- subtração
+
+
+--Gera G e P, que são auxiliares para gerar o carry antecipado
+GERADOR : for nn in 0 to 31 generate
+    s_G(nn)   <= A_i(nn) and B_op(nn); -- '1' caso A_i(nn) e B_i(nn) são '1'
+    s_P(nn)   <= A_i(nn) xor B_op(nn); -- carry anterior quando A_i(nn) e B_i(nn) são diferentes
+  end generate GERADOR;
+ 
+--Variável Carry bit-by-bit após a geração
+  Carry(0) <= '0' when mode_i = '0' else
+  		'1';
+  
+  Carry(1) <= s_G(0) or (s_P(0) and s_C(0));
+  Carry(2) <= s_G(1) or (s_P(1) and s_C(1));
+  Carry(3) <= s_G(2) or (s_P(2) and s_C(2));
+  
+  Carry(4) <= '0' when (vecSize_i = "00" and mode_i ='0') else -- copia o mode para o segundo "bloco" 4 bits (soma)
+  		   '1' when (vecSize_i = "00" and mode_i ='1') else -- copia o mode para o segundo "bloco" 4 bits (subtração)
+  		   s_G(3) or (s_P(3) and s_C(3)); -- continua a propagação caso o número de bits seja maior que 4
+  			
+  Carry(5) <= s_G(4) or (s_P(4) and s_C(4));
+  Carry(6) <= s_G(5) or (s_P(5) and s_C(5));
+  Carry(7) <= s_G(6) or (s_P(6) and s_C(6));
+  
+  Carry(8) <= '0' when (vecSize_i = "00" and mode_i ='0') else -- copia o mode para o terceiro "bloco" de 4 bits (soma)
+  		   '1' when (vecSize_i = "00" and mode_i ='1') else -- copia o mode para o teceiro "bloco" de 4 bits (subtração)
+  		   '0' when (vecSize_i = "01" and mode_i ='0') else -- copia o mode para o segundo "bloco" de 8 bits (soma)
+  		   '1' when (vecSize_i = "01" and mode_i ='1') else -- copia o mode para o segundo "bloco" de 8 bits (subtração)
+  		   s_G(7) or (s_P(7) and s_C(7)); -- continua a propagação caso o número de bits seja maior que 8
+  
+  Carry(9) <= s_G(8) or (w_P(8) and s_C(8)); 
+  Carry(10) <= s_G(9) or (s_P(9) and s_C(9));
+  Carry(11) <= s_G(10) or (s_P(10) and s_C(10));
+  
+  Carry(12) <= '0' when (vecSize_i = "00" and mode_i = '0') else -- copia o mode para o quarto "bloco" de 4 bits (soma)
+  			'1' when (vecSize_i = "00" and mode_i = '1') else -- copia o mode para o quarto "bloco de 4 bits (subtração)
+  			s_G(11) or (s_P(11) and s_C(11)); -- continua a propagação caso o número de bits seja maior que 4
+  			
+  Carry(13) <= s_G(12) or (s_P(12) and s_C(12)); 
+  Carry(14) <= s_G(13) or (s_P(13) and s_C(13));
+  Carry(15) <= s_G(14) or (s_P(14) and s_C(14));
+  
+  Carry(16) <= '0' when (vecSize_i = "00" and mode_i ='0') else -- copia o mode para o quinto "bloco" de 4 bits (soma)
+  		   '1' when (vecSize_i = "00" and mode_i ='1') else -- copia o mode para o quinto "bloco" de 4 bits (subtração)
+  		   '0' when (vecSize_i = "01" and mode_i ='0') else -- copia o mode para o terceiro "bloco" de 8 bits (soma)
+  		   '1' when (vecSize_i = "01" and mode_i ='1') else -- copia o mode para o terceiro "bloco" de 8 bits (subtração)
+  		   '0' when (vecSize_i = "10" and mode_i ='0') else -- copia o mode para o segundo(e último) "bloco" de 16 bits (soma)
+  		   '1' when (vecSize_i = "10" and mode_i ='1') else -- copia o mode para o segundo(e último) "bloco" de 16 bits (subtração)
+  		   s_G(15) or (s_P(15) and s_C(15)); -- continua a propagação caso o número de bits seja 32
+  
+  Carry(17) <= s_G(16) or (s_P(16) and s_C(16));
+  Carry(18) <= s_G(17) or (s_P(17) and s_C(17));
+  Carry(19) <= s_G(18) or (s_P(18) and s_C(18));
+  
+  Carry(20) <= '0' when (vecSize_i = "00" and mode_i ='0') else -- copia o mode para o sexto "bloco" de 4 bits (soma)
+  		   '1' when (vecSize_i = "00" and mode_i ='1') else -- copia o mode para o sexto "bloco" de 4 bits (subtração)
+  			s_G(19) or (s_P(19) and s_C(19)); -- continua a propagação caso o número de bits seja diferente de 4
+  			
+  Carry(21) <= s_G(20) or (s_P(20) and s_C(20)); 
+  Carry(22) <= s_G(21) or (s_P(21) and s_C(21));
+  Carry(23) <= s_G(22) or (s_P(22) and s_C(22));
+  
+  Carry(24) <= '0' when (vecSize_i = "00" and mode_i ='0') else -- copia o mode para o sétimo "bloco" de 4 bits (soma)
+  		   '1' when (vecSize_i = "00" and mode_i ='1') else -- copia o mode para o sétimo "bloco" de 4 bits (subtração)
+  		   '0' when (vecSize_i = "01" and mode_i ='0') else -- copia o mode para o quarto(e último) "bloco" de 8 bits (soma)
+  		   '1' when (vecSize_i = "01" and mode_i ='1') else -- copia o mode para o quarto(e último) "bloco" de 8 bits (subtração)
+  			s_G(23) or (s_P(23) and s_C(23)); -- continua a propagação caso o número de bits seja maior que 8
+  			
+  Carry(25) <= s_G(24) or (s_P(24) and s_C(24));
+  Carry(26) <= s_G(25) or (s_P(25) and s_C(25));
+  Carry(27) <= s_G(26) or (s_P(26) and s_C(26)); 
+  
+  Carry(28) <= '0' when (vecSize_i = "00" and mode_i ='0') else -- copia o mode para o oitavo(e último) "bloco" de 4 bits (soma)
+  		   '1' when (vecSize_i = "00" and mode_i ='1') else -- copia o mode para o oitavo(e último) "bloco" de 4 bits (subtração)
+  			s_G(27) or (s_P(27) and s_C(27)); -- continua a propagação caso o número de bits seja diferente de 4
+  			
+  Carry(29) <= s_G(28) or (s_P(28) and s_C(28));
+  Carry(30) <= s_G(29) or (s_P(29) and s_C(29));
+  Carry(31) <= s_G(30) or (s_P(30) and s_C(30));
+  
+--faz as somas
+  GERADOR_SOMA : for mm in 0 to 31 generate
+    s_Soma (mm) <= A_i(mm) xor B_op(mm) xor Carry(kk);
+  end generate GERADOR_SOMA;
+
+
+  S_o <= s_Soma;
+
+
+END TypeArchitecture;
