@@ -1,3 +1,4 @@
+---trabalho 4 (vetorial, SIMD)
 use ieee.std_logic_1164.all;&#13;
 &#13;
 entity TCL_Generic is&#13;
@@ -67,8 +68,8 @@ begin
 	C &lt;= std_logic_vector(AUX);
 	END IF;
 end process;
-END TypeArchitecture;</vhdl>
-  <vhdl name="CONTROL">LIBRARY ieee;
+END TypeArchitecture;
+LIBRARY ieee;
 USE ieee.std_logic_1164.all;
 
 ENTITY CONTROL IS
@@ -306,11 +307,11 @@ end process;
 END TypeArchitecture;
 
 
---------
----trabalho 4
-
+	--------
+	---trabalho 3
+	
 use ieee.std_logic_1164.all;&#13;
-&#13;
+	&#13;
 entity TCL_Generic is&#13;
   port(&#13;
     --Insert input ports below&#13;
@@ -375,8 +376,9 @@ begin
     zero &lt;= '0';
     END IF;
 end process;
-END TypeArchitecture;</vhdl>
-  <vhdl name="CONTROL">LIBRARY ieee;
+END TypeArchitecture;
+
+  LIBRARY ieee;
 USE ieee.std_logic_1164.all;
 
 ENTITY CONTROL IS
