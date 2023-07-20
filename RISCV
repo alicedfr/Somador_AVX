@@ -1,0 +1,614 @@
+use ieee.std_logic_1164.all;&#13;
+&#13;
+entity TCL_Generic is&#13;
+  port(&#13;
+    --Insert input ports below&#13;
+    horloge_i  : in  std_logic;                    -- input bit example&#13;
+    val_i      : in  std_logic_vector(3 downto 0); -- input vector example&#13;
+&#13;
+	  --Insert output ports below&#13;
+    max_o      : out std_logic;                    -- output bit example&#13;
+    cpt_o      : out std_logic_Vector(3 downto 0)  -- output vector example&#13;
+  );&#13;
+end TCL_Generic;&#13;
+
+
+USE ieee.std_logic_1164.all;
+USE ieee.std_logic_unsigned.all;
+use ieee.numeric_std.all;
+
+ENTITY ALU IS
+  PORT (
+  ------------------------------------------------------------------------------
+  --Insert input ports below
+    A,B      : IN  std_logic_vector(31 DOWNTO 0);
+    CONTROL  : IN  std_logic_vector(3 DOWNTO 0);                    
+  ------------------------------------------------------------------------------
+  --Insert output ports below
+    C        : OUT std_logic_vector(31 DOWNTO 0);
+    zero     : OUT std_logic
+    );
+END ALU;
+
+ARCHITECTURE TypeArchitecture OF ALU IS
+SIGNAL AUX : unsigned(31 DOWNTO 0);
+SIGNAL AUX2 : std_logic_vector(31 DOWNTO 0);
+
+BEGIN
+process(A,B,CONTROL)
+begin
+    case CONTROL is 
+    when "0000" =&gt; C &lt;= A + B;
+    when "0001" =&gt; C &lt;= A - B;
+    when "0010" =&gt; C &lt;= A AND B;
+    when "0011" =&gt; C &lt;= A OR B;
+    when "0100" =&gt; C &lt;= A XOR B;
+    when "0101" =&gt; AUX &lt;= shift_left(unsigned(A), 1);
+    when "0110" =&gt; AUX &lt;= shift_left(unsigned(B), 1);
+    when "0111" =&gt; AUX &lt;= shift_right(unsigned(A), 2);
+    when "1000" =&gt; AUX &lt;= shift_right(unsigned(B), 2);
+    when others =&gt; C &lt;= NOT A AND A;
+    end case;
+    case CONTROL is 
+    when "0000" =&gt; AUX2 &lt;= A + B;
+    when "0001" =&gt; AUX2 &lt;= A - B;
+    when "0010" =&gt; AUX2 &lt;= A AND B;
+    when "0011" =&gt; AUX2 &lt;= A OR B;
+    when "0100" =&gt; AUX2 &lt;= A XOR B;
+    when others =&gt; AUX2 &lt;= NOT A AND A;
+    end case;
+    IF AUX2 = "00000000000000000000000000000000" THEN
+    zero &lt;= '1';
+    ELSE
+    zero &lt;= '0';
+    END IF;
+    C &lt;= AUX2;
+    IF CONTROL &gt; "0100" THEN
+	C &lt;= std_logic_vector(AUX);
+	END IF;
+end process;
+END TypeArchitecture;</vhdl>
+  <vhdl name="CONTROL">LIBRARY ieee;
+USE ieee.std_logic_1164.all;
+
+ENTITY CONTROL IS
+  PORT (
+  ------------------------------------------------------------------------------
+  --Insert input ports below
+    opcode        : IN  std_logic_vector(6 DOWNTO 0);                   
+    funct3        : IN  std_logic_vector(2 DOWNTO 0);
+    funct7        : IN  std_logic_vector(6 DOWNTO 0);
+  --Insert output ports below
+    ALUOp         : OUT std_logic_vector(3 DOWNTO 0);
+    MemtoReg      : OUT std_logic_vector(1 DOWNTO 0);
+    ALUSrc,RegWrite,MemWrite,MemRead,PCSrc      : OUT std_logic  
+    );
+END CONTROL;
+
+--------------------------------------------------------------------------------
+--Complete your VHDL description below
+--------------------------------------------------------------------------------
+
+ARCHITECTURE TypeArchitecture OF CONTROL IS
+
+BEGIN
+
+process(opcode,funct3,funct7)
+begin
+if opcode = "0110011" THEN
+    if funct3 = "000" then
+        IF funct7 = "0000000" THEN
+        ALUOp &lt;= "0000";
+        ALUSrc &lt;= '0';
+        RegWrite &lt;= '1';
+        MemWrite &lt;= '0';
+        MemRead &lt;= '0';
+        MemtoReg &lt;= "00";
+        PCSrc &lt;= '0';
+        elsif funct7 = "0100000" THEN
+        ALUOp &lt;= "0001";
+        ALUSrc &lt;= '0';
+        RegWrite &lt;= '1';
+        MemWrite &lt;= '0';
+        MemRead &lt;= '0';
+        MemtoReg &lt;= "00";
+        PCSrc &lt;= '0';
+        END IF;
+    elsif funct3 = "001" THEN
+        IF funct7 = "0000000" THEN
+        ALUOp &lt;= "0101";
+        ALUSrc &lt;= '0';
+        RegWrite &lt;= '1';
+        MemWrite &lt;= '0';
+        MemRead &lt;= '0';
+        MemtoReg &lt;= "00";
+        PCSrc &lt;= '0';
+        END IF;
+    elsif funct3 = "100" THEN
+        if funct7 = "0000000" THEN
+        ALUOp &lt;= "0100";
+        ALUSrc &lt;= '0';
+        RegWrite &lt;= '1';
+        MemWrite &lt;= '0';
+        MemRead &lt;= '0';
+        MemtoReg &lt;= "00";
+        PCSrc &lt;= '0';
+        END IF;
+    elsif funct3 = "101" THEN 
+        if funct7 = "0000000" THEN
+        ALUOp &lt;= "0111";
+        ALUSrc &lt;= '0';
+        RegWrite &lt;= '1';
+        MemWrite &lt;= '0';
+        MemRead &lt;= '0';
+        MemtoReg &lt;= "00";
+        PCSrc &lt;= '0';
+        END IF;
+    elsif funct3 = "110" THEN
+        if funct7 = "0000000" THEN
+        ALUOp &lt;= "0011";
+        ALUSrc &lt;= '0';
+        RegWrite &lt;= '1';
+        MemWrite &lt;= '0';
+        MemRead &lt;= '0';
+        MemtoReg &lt;= "00";
+        PCSrc &lt;= '0';
+        END IF;
+    elsif funct3 = "111" THEN
+        if funct7 = "0000000" THEN
+        ALUOp &lt;= "0010";
+        ALUSrc &lt;= '0';
+        RegWrite &lt;= '1';
+        MemWrite &lt;= '0';
+        MemRead &lt;= '0';
+        MemtoReg &lt;= "00";
+        PCSrc &lt;= '0';
+        END IF;
+    END IF;
+elsif opcode = "0010011" THEN
+    if funct3 = "000" THEN
+    ALUOp &lt;= "0000";
+    ALUSrc &lt;= '1';
+    RegWrite &lt;= '1';
+    MemWrite &lt;= '0';
+    MemRead &lt;= '0';
+    MemtoReg &lt;= "00";
+    PCSrc &lt;= '0';
+    elsif funct3 = "001" THEN
+        if funct7 = "0000000" THEN
+        ALUOp &lt;= "0110";
+        ALUSrc &lt;= '1';
+        RegWrite &lt;= '1';
+        MemWrite &lt;= '0';
+        MemRead &lt;= '0';
+        MemtoReg &lt;= "00";
+        PCSrc &lt;= '0';
+        END IF;
+    elsif funct3 = "100" THEN 
+    ALUOp &lt;= "0100";
+    ALUSrc &lt;= '1';
+    RegWrite &lt;= '1';
+    MemWrite &lt;= '0';
+    MemRead &lt;= '0';
+    MemtoReg &lt;= "00";
+    PCSrc &lt;= '0';
+    elsif funct3 = "101" THEN
+        if funct7 = "0000000" THEN 
+        ALUOp &lt;= "1000";
+        ALUSrc &lt;= '1';
+        RegWrite &lt;= '1';
+        MemWrite &lt;= '0';
+        MemRead &lt;= '0';
+        MemtoReg &lt;= "00";
+        PCSrc &lt;= '0';
+        END IF;
+    elsif funct3 = "110" THEN
+    ALUOp &lt;= "0011";
+    ALUSrc &lt;= '1';
+    RegWrite &lt;= '1';
+    MemWrite &lt;= '0';
+    MemRead &lt;= '0';
+    MemtoReg &lt;= "00";
+    PCSrc &lt;= '0';
+    elsif funct3 = "111" THEN
+    ALUOp &lt;= "0010";
+    ALUSrc &lt;= '1';
+    RegWrite &lt;= '1';
+    MemWrite &lt;= '0';
+    MemRead &lt;= '0';
+    MemtoReg &lt;= "00";
+    PCSrc &lt;= '0';
+    END IF;
+elsif opcode = "0010111" THEN
+ALUOp &lt;= "0000";
+ALUSrc &lt;= '1';
+RegWrite &lt;= '1';
+MemWrite &lt;= '0';
+MemRead &lt;= '0';
+MemtoReg &lt;= "10";
+PCSrc &lt;= '0';
+elsif opcode = "0110111" THEN
+ALUOp &lt;= "0000";
+ALUSrc &lt;= '1';
+RegWrite &lt;= '1';
+MemWrite &lt;= '0';
+MemRead &lt;= '0';
+MemtoReg &lt;= "10";
+PCSrc &lt;= '0';
+elsif opcode = "0000011" THEN
+    if funct3 = "010" THEN 
+    ALUOp &lt;= "0000";
+    ALUSrc &lt;= '1';
+    RegWrite &lt;= '1';
+    MemWrite &lt;= '0';
+    MemRead &lt;= '1';
+    MemtoReg &lt;= "01";
+    PCSrc &lt;= '0';
+    END IF;
+elsif opcode = "0100011" THEN
+    if funct3 = "010" THEN 
+    ALUOp &lt;= "0000";
+    ALUSrc &lt;= '1';
+    RegWrite &lt;= '0';
+    MemWrite &lt;= '0';
+    MemRead &lt;= '1';
+    MemtoReg &lt;= "00";
+    PCSrc &lt;= '0';
+    END IF;
+elsif opcode = "1101111" THEN 
+ALUOp &lt;= "0000";
+ALUSrc &lt;= '1';
+RegWrite &lt;= '1';
+MemWrite &lt;= '0';
+MemRead &lt;= '0';
+MemtoReg &lt;= "10";
+PCSrc &lt;= '1';
+elsif opcode = "1100111" THEN 
+    IF funct3 = "000" THEN
+    ALUOp &lt;= "0000";
+    ALUSrc &lt;= '1';
+    RegWrite &lt;= '1';
+    MemWrite &lt;= '0';
+    MemRead &lt;= '0';
+    MemtoReg &lt;= "10";
+    PCSrc &lt;= '1';
+    END IF;
+elsif opcode = "1100011" THEN 
+    IF funct3 = "000" THEN
+    ALUOp &lt;= "0001";
+    ALUSrc &lt;= '0';
+    RegWrite &lt;= '0';
+    MemWrite &lt;= '0';
+    MemRead &lt;= '0';
+    MemtoReg &lt;= "00";
+    PCSrc &lt;= '0';
+    elsif funct3 = "001" THEN
+    ALUOp &lt;= "0001";
+    ALUSrc &lt;= '0';
+    RegWrite &lt;= '0';
+    MemWrite &lt;= '0';
+    MemRead &lt;= '0';
+    MemtoReg &lt;= "00";
+    PCSrc &lt;= '0';
+    END IF;
+ELSE 
+ALUOp &lt;= "0000";
+ALUSrc &lt;= '0';
+RegWrite &lt;= '0';
+MemWrite &lt;= '0';
+MemRead &lt;= '0';
+MemtoReg &lt;= "00";
+PCSrc &lt;= '0';
+END IF;
+
+end process;
+
+END TypeArchitecture;
+
+
+--------
+---trabalho 4
+
+use ieee.std_logic_1164.all;&#13;
+&#13;
+entity TCL_Generic is&#13;
+  port(&#13;
+    --Insert input ports below&#13;
+    horloge_i  : in  std_logic;                    -- input bit example&#13;
+    val_i      : in  std_logic_vector(3 downto 0); -- input vector example&#13;
+&#13;
+	  --Insert output ports below&#13;
+    max_o      : out std_logic;                    -- output bit example&#13;
+    cpt_o      : out std_logic_Vector(3 downto 0)  -- output vector example&#13;
+  );&#13;
+end TCL_Generic;&#13;
+
+
+LIBRARY ieee;
+USE ieee.std_logic_1164.all;
+USE ieee.std_logic_unsigned.all;
+use ieee.numeric_std.all;
+
+ENTITY ALU IS
+  PORT (
+  ------------------------------------------------------------------------------
+  --Insert input ports below
+    A,B      : IN  std_logic_vector(31 DOWNTO 0);
+    CONTROL  : IN  std_logic_vector(3 DOWNTO 0);                    
+  ------------------------------------------------------------------------------
+  --Insert output ports below
+    C        : OUT std_logic_vector(31 DOWNTO 0);
+    zero     : OUT std_logic
+    );
+END ALU;
+
+ARCHITECTURE TypeArchitecture OF ALU IS
+SIGNAL AUX : unsigned(31 DOWNTO 0);
+SIGNAL AUX2 : std_logic_vector(31 DOWNTO 0);
+
+BEGIN
+process(A,B,CONTROL)
+begin
+    case CONTROL is 
+    when "0000" =&gt; C &lt;= A + B;
+    when "0001" =&gt; C &lt;= A - B;
+    when "0010" =&gt; C &lt;= A AND B;
+    when "0011" =&gt; C &lt;= A OR B;
+    when "0100" =&gt; C &lt;= A XOR B;
+    when "0101" =&gt; C &lt;= std_logic_vector(shift_left(unsigned(B), to_integer(unsigned(A(4 DOWNTO 0)))));
+    when "0110" =&gt; C &lt;= std_logic_vector(shift_left(unsigned(B), to_integer(unsigned(A(4 DOWNTO 0)))));
+    when "0111" =&gt; C &lt;= std_logic_vector(shift_right(unsigned(B), to_integer(unsigned(A(4 DOWNTO 0)))));
+    when "1000" =&gt; C &lt;= std_logic_vector(shift_right(unsigned(B), to_integer(unsigned(A(4 DOWNTO 0)))));
+    when others =&gt; C &lt;= NOT A AND A;
+    end case;
+    case CONTROL is 
+    when "0000" =&gt; AUX2 &lt;= A + B;
+    when "0001" =&gt; AUX2 &lt;= A - B;
+    when "0010" =&gt; AUX2 &lt;= A AND B;
+    when "0011" =&gt; AUX2 &lt;= A OR B;
+    when "0100" =&gt; AUX2 &lt;= A XOR B;
+    when others =&gt; AUX2 &lt;= NOT A AND A;
+    end case;
+    IF AUX2 = "00000000000000000000000000000000" THEN
+    zero &lt;= '1';
+    ELSE
+    zero &lt;= '0';
+    END IF;
+end process;
+END TypeArchitecture;</vhdl>
+  <vhdl name="CONTROL">LIBRARY ieee;
+USE ieee.std_logic_1164.all;
+
+ENTITY CONTROL IS
+  PORT (
+  ------------------------------------------------------------------------------
+  --Insert input ports below
+    opcode        : IN  std_logic_vector(6 DOWNTO 0);                   
+    funct3        : IN  std_logic_vector(2 DOWNTO 0);
+    funct7        : IN  std_logic_vector(6 DOWNTO 0);
+  --Insert output ports below
+    ALUOp         : OUT std_logic_vector(3 DOWNTO 0);
+    MemtoReg      : OUT std_logic_vector(1 DOWNTO 0);
+    ALUSrc,RegWrite,MemWrite,MemRead,PCSrc      : OUT std_logic  
+    );
+END CONTROL;
+
+--------------------------------------------------------------------------------
+--Complete your VHDL description below
+--------------------------------------------------------------------------------
+
+ARCHITECTURE TypeArchitecture OF CONTROL IS
+
+BEGIN
+
+process(opcode,funct3,funct7)
+begin
+if opcode = "0110011" THEN
+    if funct3 = "000" then
+        IF funct7 = "0000000" THEN
+        ALUOp &lt;= "0000";
+        ALUSrc &lt;= '0';
+        RegWrite &lt;= '1';
+        MemWrite &lt;= '0';
+        MemRead &lt;= '0';
+        MemtoReg &lt;= "00";
+        PCSrc &lt;= '0';
+        elsif funct7 = "0100000" THEN
+        ALUOp &lt;= "0001";
+        ALUSrc &lt;= '0';
+        RegWrite &lt;= '1';
+        MemWrite &lt;= '0';
+        MemRead &lt;= '0';
+        MemtoReg &lt;= "00";
+        PCSrc &lt;= '0';
+        END IF;
+    elsif funct3 = "001" THEN
+        IF funct7 = "0000000" THEN
+        ALUOp &lt;= "0101";
+        ALUSrc &lt;= '0';
+        RegWrite &lt;= '1';
+        MemWrite &lt;= '0';
+        MemRead &lt;= '0';
+        MemtoReg &lt;= "00";
+        PCSrc &lt;= '0';
+        END IF;
+    elsif funct3 = "100" THEN
+        if funct7 = "0000000" THEN
+        ALUOp &lt;= "0100";
+        ALUSrc &lt;= '0';
+        RegWrite &lt;= '1';
+        MemWrite &lt;= '0';
+        MemRead &lt;= '0';
+        MemtoReg &lt;= "00";
+        PCSrc &lt;= '0';
+        END IF;
+    elsif funct3 = "101" THEN 
+        if funct7 = "0000000" THEN
+        ALUOp &lt;= "0111";
+        ALUSrc &lt;= '0';
+        RegWrite &lt;= '1';
+        MemWrite &lt;= '0';
+        MemRead &lt;= '0';
+        MemtoReg &lt;= "00";
+        PCSrc &lt;= '0';
+        END IF;
+    elsif funct3 = "110" THEN
+        if funct7 = "0000000" THEN
+        ALUOp &lt;= "0011";
+        ALUSrc &lt;= '0';
+        RegWrite &lt;= '1';
+        MemWrite &lt;= '0';
+        MemRead &lt;= '0';
+        MemtoReg &lt;= "00";
+        PCSrc &lt;= '0';
+        END IF;
+    elsif funct3 = "111" THEN
+        if funct7 = "0000000" THEN
+        ALUOp &lt;= "0010";
+        ALUSrc &lt;= '0';
+        RegWrite &lt;= '1';
+        MemWrite &lt;= '0';
+        MemRead &lt;= '0';
+        MemtoReg &lt;= "00";
+        PCSrc &lt;= '0';
+        END IF;
+    END IF;
+elsif opcode = "0010011" THEN
+    if funct3 = "000" THEN
+    ALUOp &lt;= "0000";
+    ALUSrc &lt;= '1';
+    RegWrite &lt;= '1';
+    MemWrite &lt;= '0';
+    MemRead &lt;= '0';
+    MemtoReg &lt;= "00";
+    PCSrc &lt;= '0';
+    elsif funct3 = "001" THEN
+        if funct7 = "0000000" THEN
+        ALUOp &lt;= "0110";
+        ALUSrc &lt;= '1';
+        RegWrite &lt;= '1';
+        MemWrite &lt;= '0';
+        MemRead &lt;= '0';
+        MemtoReg &lt;= "00";
+        PCSrc &lt;= '0';
+        END IF;
+    elsif funct3 = "100" THEN 
+    ALUOp &lt;= "0100";
+    ALUSrc &lt;= '1';
+    RegWrite &lt;= '1';
+    MemWrite &lt;= '0';
+    MemRead &lt;= '0';
+    MemtoReg &lt;= "00";
+    PCSrc &lt;= '0';
+    elsif funct3 = "101" THEN
+        if funct7 = "0000000" THEN 
+        ALUOp &lt;= "1000";
+        ALUSrc &lt;= '1';
+        RegWrite &lt;= '1';
+        MemWrite &lt;= '0';
+        MemRead &lt;= '0';
+        MemtoReg &lt;= "00";
+        PCSrc &lt;= '0';
+        END IF;
+    elsif funct3 = "110" THEN
+    ALUOp &lt;= "0011";
+    ALUSrc &lt;= '1';
+    RegWrite &lt;= '1';
+    MemWrite &lt;= '0';
+    MemRead &lt;= '0';
+    MemtoReg &lt;= "00";
+    PCSrc &lt;= '0';
+    elsif funct3 = "111" THEN
+    ALUOp &lt;= "0010";
+    ALUSrc &lt;= '1';
+    RegWrite &lt;= '1';
+    MemWrite &lt;= '0';
+    MemRead &lt;= '0';
+    MemtoReg &lt;= "00";
+    PCSrc &lt;= '0';
+    END IF;
+elsif opcode = "0010111" THEN
+ALUOp &lt;= "0000";
+ALUSrc &lt;= '1';
+RegWrite &lt;= '1';
+MemWrite &lt;= '0';
+MemRead &lt;= '0';
+MemtoReg &lt;= "10";
+PCSrc &lt;= '0';
+elsif opcode = "0110111" THEN
+ALUOp &lt;= "0000";
+ALUSrc &lt;= '1';
+RegWrite &lt;= '1';
+MemWrite &lt;= '0';
+MemRead &lt;= '0';
+MemtoReg &lt;= "10";
+PCSrc &lt;= '0';
+elsif opcode = "0000011" THEN
+    if funct3 = "010" THEN 
+    ALUOp &lt;= "0000";
+    ALUSrc &lt;= '1';
+    RegWrite &lt;= '1';
+    MemWrite &lt;= '0';
+    MemRead &lt;= '1';
+    MemtoReg &lt;= "01";
+    PCSrc &lt;= '0';
+    END IF;
+elsif opcode = "0100011" THEN
+    if funct3 = "010" THEN 
+    ALUOp &lt;= "0000";
+    ALUSrc &lt;= '1';
+    RegWrite &lt;= '0';
+    MemWrite &lt;= '1';
+    MemRead &lt;= '0';
+    MemtoReg &lt;= "00";
+    PCSrc &lt;= '0';
+    END IF;
+elsif opcode = "1101111" THEN 
+ALUOp &lt;= "0000";
+ALUSrc &lt;= '1';
+RegWrite &lt;= '1';
+MemWrite &lt;= '0';
+MemRead &lt;= '0';
+MemtoReg &lt;= "10";
+PCSrc &lt;= '1';
+elsif opcode = "1100111" THEN 
+    IF funct3 = "000" THEN
+    ALUOp &lt;= "0000";
+    ALUSrc &lt;= '1';
+    RegWrite &lt;= '1';
+    MemWrite &lt;= '0';
+    MemRead &lt;= '0';
+    MemtoReg &lt;= "10";
+    PCSrc &lt;= '1';
+    END IF;
+elsif opcode = "1100011" THEN 
+    IF funct3 = "000" THEN
+    ALUOp &lt;= "0001";
+    ALUSrc &lt;= '0';
+    RegWrite &lt;= '0';
+    MemWrite &lt;= '0';
+    MemRead &lt;= '0';
+    MemtoReg &lt;= "00";
+    PCSrc &lt;= '0';
+    elsif funct3 = "001" THEN
+    ALUOp &lt;= "0001";
+    ALUSrc &lt;= '0';
+    RegWrite &lt;= '0';
+    MemWrite &lt;= '0';
+    MemRead &lt;= '0';
+    MemtoReg &lt;= "00";
+    PCSrc &lt;= '0';
+    END IF;
+ELSE 
+ALUOp &lt;= "0000";
+ALUSrc &lt;= '0';
+RegWrite &lt;= '0';
+MemWrite &lt;= '0';
+MemRead &lt;= '0';
+MemtoReg &lt;= "00";
+PCSrc &lt;= '0';
+END IF;
+
+end process;
+
+END TypeArchitecture;
